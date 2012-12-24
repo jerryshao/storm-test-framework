@@ -13,12 +13,12 @@ public class TimestampSpout extends SpoutSkeleton {
 
 	public TimestampSpout() {
 		setSpoutName("TimestampSpout");
+		setSpoutConcurrency(3);
 	}
 	
 	@Override
 	public void spoutOpen(Map conf, TopologyContext context,
 			SpoutOutputCollector collector) {
-		setSpoutConcurrency(3);
 	}
 
 	@Override

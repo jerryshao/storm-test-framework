@@ -62,21 +62,13 @@ abstract public class TopologySkeleton {
 		}
 		topology.setTopologyName(topologyName);
 		topology.setTopologyBuilder(topology.getTopologyBuilder());
-		
-//		
-//		TopologyBuilder builder = new TopologyBuilder();
-//		
-//		builder.setSpout(spout.getSpoutName(), spout, spout.getSpoutConcurreny());
-//		InputDeclarer<? extends InputDeclarer> de = 
-//				builder.setBolt(bolt.getBoltName(), bolt, bolt.getBoltConcurrency());
-//		bolt.setGrouping(spout.getSpoutName(), de);
-//		
+	
 		
 		try {
 			if (args[0].equals("local")) {
 				topology.getConfig().setMaxTaskParallelism(3);			
 				LocalCluster cluster = new LocalCluster();
-				cluster.submitTopology(args[0], topology.getConfig(),
+				cluster.submitTopology(topology.getTopologyName(), topology.getConfig(),
 						topology.getTopologyBuilder().createTopology());
 		
 				Thread.sleep(30000);
