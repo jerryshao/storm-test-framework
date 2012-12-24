@@ -43,7 +43,7 @@ abstract public class TopologySkeleton {
 	
 	public static void main(String[] args) {
 		if (args == null || args.length < 2) {
-			log.info("Usage: TopologySkeleton topology local|remote name");
+			System.out.println("Usage: TopologySkeleton topology local|remote name");
 			return;
 		}
 		
@@ -65,8 +65,7 @@ abstract public class TopologySkeleton {
 	
 		
 		try {
-			if (args[0].equals("local")) {
-				topology.getConfig().setMaxTaskParallelism(3);			
+			if (args[0].equals("local")) {	
 				LocalCluster cluster = new LocalCluster();
 				cluster.submitTopology(topology.getTopologyName(), topology.getConfig(),
 						topology.getTopologyBuilder().createTopology());
@@ -74,7 +73,10 @@ abstract public class TopologySkeleton {
 				Thread.sleep(30000);
 				cluster.shutdown();
 			} else if (args[0].equals("remote")) {
-			    topology.getConfig().setNumWorkers(3);		    
+				if (args.length > 2) {
+					topology.getConfig().setNumWorkers(Integer.parseInt(args[2]));
+				}
+				
 				StormSubmitter.submitTopology(topology.getTopologyName(),
 						topology.getConfig(), 
 						topology.getTopologyBuilder().createTopology());	
