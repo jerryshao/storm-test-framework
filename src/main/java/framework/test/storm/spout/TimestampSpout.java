@@ -11,10 +11,14 @@ import framework.test.storm.SpoutSkeleton;
 
 public class TimestampSpout extends SpoutSkeleton {
 
+	public TimestampSpout() {
+		setSpoutName("TimestampSpout");
+	}
+	
 	@Override
 	public void spoutOpen(Map conf, TopologyContext context,
 			SpoutOutputCollector collector) {
-		setSpoutName("TimestampSpout");
+		setSpoutConcurrency(3);
 	}
 
 	@Override
@@ -25,6 +29,6 @@ public class TimestampSpout extends SpoutSkeleton {
 
 	@Override
 	public void spoutDeclareOputputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("timestamp1"));
+		declarer.declare(new Fields("timestamp"));
 	}
 }

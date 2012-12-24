@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
+import backtype.storm.topology.InputDeclarer;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
@@ -18,6 +19,7 @@ abstract public class BoltSkeleton extends BaseBasicBolt {
 	private volatile long boltRecvCounter = 0l;
 	private Timer boltRecvTimer = null;
 	private String boltName = "BoltSkeleton";
+	private int concurrency = 1;
 	
 	abstract public void boltPrepare(Map stormConf, TopologyContext context);
 	
@@ -40,10 +42,23 @@ abstract public class BoltSkeleton extends BaseBasicBolt {
 	public long getRecvCounter() {
 		return boltRecvCounter;
 	}
+	
+	public void setBoltConcurrency(int con) { 
+		concurrency = con;
+	}
+	
+	public int getBoltConcurrency() {
+		return concurrency;
+	}
+	
+	public void setGrouping(String groupingSource, 
+			InputDeclarer<? extends InputDeclarer> declarer) {
+		declarer.shuffleGrouping(groupingSource);
+	}
 
     @Override
     public void prepare(Map stormConf, TopologyContext context) {
-    	boltRecvTimer = new Timer();
+    	boltRecvTimer = new Timer(true);
     	boltRecvTimer.scheduleAtFixedRate(new TimerTask() {
     		public void run() {
     			log.info("current timestamp[" + System.currentTimeMillis() 

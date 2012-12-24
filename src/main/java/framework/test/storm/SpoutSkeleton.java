@@ -16,8 +16,9 @@ public abstract class SpoutSkeleton extends BaseRichSpout {
 	
 	private volatile long spoutEmitCounter = 0;
 	private SpoutOutputCollector collector = null;
-	Timer spoutCounterTimer = null;
-	String spoutName = "SpoutSkeleton";
+	private Timer spoutCounterTimer = null;
+	private String spoutName = "SpoutSkeleton";
+	private int concurrency = 1;
 	
 	abstract public void spoutOpen(Map conf, TopologyContext context,
 			SpoutOutputCollector collector);
@@ -43,11 +44,19 @@ public abstract class SpoutSkeleton extends BaseRichSpout {
 		return spoutEmitCounter;
 	}
 	
+	public void setSpoutConcurrency(int con) {
+		concurrency = con;
+	}
+	
+	public int getSpoutConcurreny() {
+		return concurrency;
+	}
+	
 	public void open(Map conf, TopologyContext context,
 			SpoutOutputCollector collector) {
 		this.collector = collector;
 		
-		spoutCounterTimer = new Timer();
+		spoutCounterTimer = new Timer(true);
 		spoutCounterTimer.scheduleAtFixedRate(new TimerTask() {
 			public void run() {
 				log.info("current timestamp[" + System.currentTimeMillis() 

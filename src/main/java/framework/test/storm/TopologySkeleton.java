@@ -1,51 +1,96 @@
 package framework.test.storm;
 
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
+import backtype.storm.topology.InputDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 
-public class TopologySkeleton {
+abstract public class TopologySkeleton {
 	static Logger log = Logger.getLogger(TopologySkeleton.class);
 	
-	public static void main(String[] args) throws InterruptedException {
-		if (args == null || args.length == 0) {
-			log.info("Usage: TopologySkeleton topology name");
+	private String topologyName = "default";
+	private Config conf = new Config();
+	private TopologyBuilder builder = new TopologyBuilder();
+	
+	abstract public void setTopologyBuilder(TopologyBuilder builder);
+	
+	public void setTopologyName(final String name) {
+		topologyName = name;
+	}
+	
+	public String getTopologyName() {
+		return topologyName;
+	}
+	
+	public Config getConfig() {
+		return conf;
+	}
+	
+	public TopologyBuilder getTopologyBuilder() {
+		return builder;
+	}
+	
+	public static void main(String[] args) {
+		if (args == null || args.length < 2) {
+			log.info("Usage: TopologySkeleton topology local|remote name");
 			return;
 		}
 		
-		String spoutName = "framework.test.storm.spout." + args[0] + "Spout";
-		String boltName = "framework.test.storm.bolt." + args[0] + "Bolt";
+		String topologyName = args[1];
+		String topologyClassName = 
+				"framework.test.storm.topology." + args[1] + "Topology";
 
-		SpoutSkeleton spout = null;
-		BoltSkeleton bolt = null;
+		TopologySkeleton topology = null;
 		try {
-			Class<?> spoutClass = Class.forName(spoutName);
-			Class<?> boltClass = Class.forName(boltName);
+			Class<?> topologyClass = Class.forName(topologyClassName);
 			
-			spout = (SpoutSkeleton) spoutClass.newInstance();
-			bolt = (BoltSkeleton) boltClass.newInstance();
+			topology = (TopologySkeleton) topologyClass.newInstance();
+		} catch (Exception e) {
+			log.error(e.getMessage()); //TODO
+			return;
+		}
+		topology.setTopologyName(topologyName);
+		topology.setTopologyBuilder(topology.getTopologyBuilder());
+		
+//		
+//		TopologyBuilder builder = new TopologyBuilder();
+//		
+//		builder.setSpout(spout.getSpoutName(), spout, spout.getSpoutConcurreny());
+//		InputDeclarer<? extends InputDeclarer> de = 
+//				builder.setBolt(bolt.getBoltName(), bolt, bolt.getBoltConcurrency());
+//		bolt.setGrouping(spout.getSpoutName(), de);
+//		
+		
+		try {
+			if (args[0].equals("local")) {
+				topology.getConfig().setMaxTaskParallelism(3);			
+				LocalCluster cluster = new LocalCluster();
+				cluster.submitTopology(args[0], topology.getConfig(),
+						topology.getTopologyBuilder().createTopology());
+		
+				Thread.sleep(30000);
+				cluster.shutdown();
+			} else if (args[0].equals("remote")) {
+			    topology.getConfig().setNumWorkers(3);		    
+				StormSubmitter.submitTopology(topology.getTopologyName(),
+						topology.getConfig(), 
+						topology.getTopologyBuilder().createTopology());	
+			} else {
+				throw new InvalidParameterException("unknow parameter " + args[0]);
+			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
-		
-		TopologyBuilder builder = new TopologyBuilder();
-		
-		builder.setSpout(spout.getSpoutName(), spout);
-		builder.setBolt(bolt.getBoltName(), bolt).shuffleGrouping(spout.getSpoutName());
-		
-		// for test, TODO
-		Config conf = new Config();
-	    conf.setMaxTaskParallelism(3);
-		
-	    LocalCluster cluster = new LocalCluster();
-	    cluster.submitTopology(args[0], conf, builder.createTopology());
-	
-	    Thread.sleep(3000);
-	
-	    cluster.shutdown();
-
 	}
-
 }

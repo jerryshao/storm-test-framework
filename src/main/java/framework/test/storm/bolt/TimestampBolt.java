@@ -6,35 +6,39 @@ import java.util.Map;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
+import backtype.storm.topology.InputDeclarer;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import framework.test.storm.BoltSkeleton;
 
 public class TimestampBolt extends BoltSkeleton {
-	private int valueNum = 0;
-
+	public TimestampBolt() {
+		setBoltName("TimestampBolt");
+	}
+	
 	@Override
 	public void boltPrepare(Map stormConf, TopologyContext context) {
-		setBoltName("TimestampBolt");
+		setBoltConcurrency(3);
 	}
 
 	@Override
 	public void boltExecute(Tuple input, BasicOutputCollector collector) {
-		List<Object> values = input.getValues();
+		List<Object> values = input.getValues();		
 		values.add(System.currentTimeMillis());
-		valueNum = values.size();
 		
 		collector.emit(values);
 	}
 	
 	@Override
 	public void boltDeclareOutputFields(OutputFieldsDeclarer declarer) {
-		List<String> fields = new ArrayList<String>(valueNum);
-		for (int i = 0; i < valueNum; i++) {
-			fields.add("timestamp");
-		}
+		declarer.declare(new Fields("timestamp1", "timestamp2"));
+	}
+
+	@Override
+	public void setGrouping(String groupingSource,
+			InputDeclarer<? extends InputDeclarer> declarer) {
+		declarer.shuffleGrouping(groupingSource);
 		
-		declarer.declare(new Fields(fields));
 	}
 }
