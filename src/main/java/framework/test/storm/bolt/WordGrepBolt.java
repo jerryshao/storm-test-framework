@@ -20,11 +20,14 @@ public class WordGrepBolt extends BoltSkeleton {
 	
 	public WordGrepBolt() {
 		setBoltName("WordGrepBolt");
-		setBoltConcurrency(3);
 	}
 	
 	public void setGrepWord(String word) {
 		grepWord = word;
+	}
+	
+	public String getGrepWord() {
+		return grepWord;
 	}
 	
 	@Override
@@ -34,16 +37,24 @@ public class WordGrepBolt extends BoltSkeleton {
 
 	@Override
 	public void boltExecute(Tuple input, BasicOutputCollector collector) {
-		String word = input.getStringByField("sentence");
-		if (word.indexOf(grepWord) != -1) {
-			log.info("found sentence " + word);
-			collector.emit(new Values(word));
-		}	
+		String sentence = input.getStringByField("sentence");	
+		if (sentence.indexOf(grepWord) != -1) {
+			log.info("found sentence " + sentence);	
+		}
+		
+		//sample tuple latency in every 100 tuples
+		if (getRecvCounter() % 1000 == 0) {
+			long ts = input.getLongByField("timestamp");
+			long currTs = System.currentTimeMillis();
+			log.info("tuple latency in ms[" + (currTs - ts) + "]");
+		}
+		
+		//collector.emit(new Values(word, System.currentTimeMillis()));	
 	}
 
 	@Override
 	public void boltDeclareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("sentence"));		
+		//declarer.declare(new Fields("sentence", "timestamp"));		
 	}
 	
 	@Override

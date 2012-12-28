@@ -43,7 +43,7 @@ abstract public class BoltSkeleton extends BaseBasicBolt {
 		return boltRecvCounter;
 	}
 	
-	public void setBoltConcurrency(int con) { 
+	public void setBoltConcurrency(final int con) { 
 		concurrency = con;
 	}
 	
@@ -60,9 +60,10 @@ abstract public class BoltSkeleton extends BaseBasicBolt {
     public void prepare(Map stormConf, TopologyContext context) {
     	boltRecvTimer = new Timer(true);
     	boltRecvTimer.scheduleAtFixedRate(new TimerTask() {
+    		private long lastCount = 0;
     		public void run() {
-    			log.info("current timestamp[" + System.currentTimeMillis() 
-						+ "]recv count[" + boltRecvCounter + "]"); //TODO
+    			log.info("recv count/s[" + (boltRecvCounter - lastCount) / 10 + "]");
+    			lastCount = boltRecvCounter;
     		}
     	}, 0, 10000);
     	

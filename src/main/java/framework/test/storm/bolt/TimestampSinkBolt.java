@@ -20,7 +20,6 @@ public class TimestampSinkBolt extends BoltSkeleton {
 
 	public TimestampSinkBolt() {
 		setBoltName("TimestampSinkBolt");
-		setBoltConcurrency(3);
 	}
 	
 	@Override
@@ -31,26 +30,30 @@ public class TimestampSinkBolt extends BoltSkeleton {
 	@Override
 	public void boltExecute(Tuple input, BasicOutputCollector collector) {
 		List<Object> values = input.getValues();
-		List<Long> latencyList = new ArrayList<Long>();
-		Iterator<Object> it = values.iterator();		
-		while (it.hasNext()) {
-			long first = (Long)it.next();
-			long second = 0;
-			if (it.hasNext())  {
-				second = (Long)it.next();
-			} else {
-				break;
+		
+		if (getRecvCounter() % 100 == 0) {
+			// sample every 100 tuple
+			List<Long> latencyList = new ArrayList<Long>();
+			Iterator<Object> it = values.iterator();		
+			while (it.hasNext()) {
+				long first = (Long)it.next();
+				long second = 0;
+				if (it.hasNext())  {
+					second = (Long)it.next();
+				} else {
+					break;
+				}
+				
+				long latency = second - first;
+				latencyList.add(latency);
 			}
 			
-			long latency = second - first;
-			latencyList.add(latency);
+			StringBuilder sb = new StringBuilder();
+			for (long i : latencyList) {
+				sb.append("message latency[" + i + "]");
+			}
+			log.info(sb.toString());
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		for (long i : latencyList) {
-			sb.append("message latency[" + i + "]");
-		}
-		log.info(sb.toString());
 		
 		collector.emit(values);
 	}

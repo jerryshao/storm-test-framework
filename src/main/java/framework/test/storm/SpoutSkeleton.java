@@ -44,7 +44,7 @@ public abstract class SpoutSkeleton extends BaseRichSpout {
 		return spoutEmitCounter;
 	}
 	
-	public void setSpoutConcurrency(int con) {
+	public void setSpoutConcurrency(final int con) {
 		concurrency = con;
 	}
 	
@@ -58,9 +58,10 @@ public abstract class SpoutSkeleton extends BaseRichSpout {
 		
 		spoutCounterTimer = new Timer(true);
 		spoutCounterTimer.scheduleAtFixedRate(new TimerTask() {
+			private long lastCount = 0;
 			public void run() {
-				log.info("current timestamp[" + System.currentTimeMillis() 
-						+ "]emit count[" + spoutEmitCounter + "]");  //TODO
+				log.info("emit count/s[" + (spoutEmitCounter - lastCount) / 10 + "]");
+				lastCount = spoutEmitCounter;
 			}
 		}, 0, 10000);
 		

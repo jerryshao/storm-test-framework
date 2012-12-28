@@ -15,7 +15,6 @@ import framework.test.storm.BoltSkeleton;
 public class TimestampBolt extends BoltSkeleton {
 	public TimestampBolt() {
 		setBoltName("TimestampBolt");
-		setBoltConcurrency(3);
 	}
 	
 	@Override

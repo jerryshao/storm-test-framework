@@ -14,12 +14,20 @@ public class WordGrepSpout extends SpoutSkeleton {
 	public static final String allChar = 
 			"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
-	Random rand = null;
-	String words[] = null;
+	private Random rand = null;
+	private String sentences[] = null;
+	private int sentenceLen = 100;
+	
+	public void setSentenceLen(final int len) {
+		sentenceLen = len;
+	}
+	
+	public int getSentenceLen() {
+		return sentenceLen;
+	}
 	
 	public WordGrepSpout() {
 		setSpoutName("WordGrepSpout");
-		setSpoutConcurrency(3);
 	}
 
 	@Override
@@ -31,27 +39,26 @@ public class WordGrepSpout extends SpoutSkeleton {
 
 	@Override
 	public void spoutNextTuple(SpoutOutputCollector collector) {
-		String word = words[rand.nextInt(words.length)];
-		collector.emit(new Values(word));
+		String sentence = sentences[rand.nextInt(sentences.length)];
+		collector.emit(new Values(sentence, System.currentTimeMillis()));
 	}
 
 	@Override
 	public void spoutDeclareOputputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("sentence"));
+		declarer.declare(new Fields("sentence", "timestamp"));
 	}
 	
-	private void generateRandomWords() {
-		StringBuffer sb = new StringBuffer(); 
+	private void generateRandomWords() {		
 	    Random random = new Random();
-	    int wordLength = 64;
-	    int wordsNum = 512;
-	    words = new String[wordsNum];
+	    int sentenceNum = 512;
+	    sentences = new String[sentenceNum];
 	    
-	    for (int i = 0; i < wordsNum; i++) {
-	    	for (int j = 0; j < wordLength; j++) { 
+	    for (int i = 0; i < sentenceNum; i++) {
+	    	StringBuilder sb = new StringBuilder(); 
+	    	for (int j = 0; j < sentenceLen; j++) { 
 	    		sb.append(allChar.charAt(random.nextInt(allChar.length()))); 
 	    	}
-	    	words[i] = sb.toString();
+	    	sentences[i] = sb.toString();
 	    }
 	}
 }

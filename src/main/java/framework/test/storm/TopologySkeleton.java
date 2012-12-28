@@ -21,9 +21,11 @@ abstract public class TopologySkeleton {
 	
 	private String topologyName = "default";
 	private Config conf = new Config();
-	private TopologyBuilder builder = new TopologyBuilder();
-	
-	abstract public void setTopologyBuilder(TopologyBuilder builder);
+	protected TopologyBuilder builder = new TopologyBuilder();
+	private int spoutCon = 1;
+	private int boltCon = 1;
+
+	abstract public void initTopologyBuilder(final String[] args);
 	
 	public void setTopologyName(final String name) {
 		topologyName = name;
@@ -41,9 +43,27 @@ abstract public class TopologySkeleton {
 		return builder;
 	}
 	
+	public void setSpoutCon(final int con) {
+		spoutCon = con;
+	}
+	
+	public int getSpoutCon() {
+		return spoutCon;
+	}
+	
+	public void setBoltCon(final int con) {
+		boltCon = con;
+	}
+	
+	public int getBoltCon() {
+		return boltCon;
+	}
+	
 	public static void main(String[] args) {
 		if (args == null || args.length < 2) {
-			System.out.println("Usage: TopologySkeleton topology local|remote name");
+			System.out.println("Usage: TopologySkeleton topology local|remote name " +
+					"[thread time|worker num] [spout concurrency] [bolt concurrency] " +
+					"[specific topology parameter]");
 			return;
 		}
 		
@@ -53,38 +73,60 @@ abstract public class TopologySkeleton {
 
 		TopologySkeleton topology = null;
 		try {
-			Class<?> topologyClass = Class.forName(topologyClassName);
-			
+			Class<?> topologyClass = Class.forName(topologyClassName);		
 			topology = (TopologySkeleton) topologyClass.newInstance();
 		} catch (Exception e) {
-			log.error(e.getMessage()); //TODO
+			log.error(e);
 			return;
 		}
 		topology.setTopologyName(topologyName);
-		topology.setTopologyBuilder(topology.getTopologyBuilder());
-	
 		
+		if (args.length > 3) {
+			topology.setSpoutCon(Integer.parseInt(args[3]));
+		}
+		
+		if (args.length > 4) {
+			topology.setBoltCon(Integer.parseInt(args[4]));
+		}
+		
+		String[] specificArgs = null;
+		if (args.length  > 5) {
+			specificArgs = new String[args.length - 5];
+			System.arraycopy(args, 5, specificArgs, 0, specificArgs.length);
+		}
+		
+		topology.initTopologyBuilder(specificArgs);
+
 		try {
-			if (args[0].equals("local")) {	
+			if (args[0].equals("local")) {
+				int sleep = 30000;
+				if (args.length > 2) {
+					sleep = Integer.parseInt(args[2]);
+				}
+				
 				LocalCluster cluster = new LocalCluster();
 				cluster.submitTopology(topology.getTopologyName(), topology.getConfig(),
 						topology.getTopologyBuilder().createTopology());
 		
-				Thread.sleep(30000);
+				Thread.sleep(sleep);
 				cluster.shutdown();
 			} else if (args[0].equals("remote")) {
 				if (args.length > 2) {
 					topology.getConfig().setNumWorkers(Integer.parseInt(args[2]));
+				} else {
+					topology.getConfig().setNumWorkers(1);
 				}
+				
+				topology.getConfig().setMaxSpoutPending(5000);
 				
 				StormSubmitter.submitTopology(topology.getTopologyName(),
 						topology.getConfig(), 
 						topology.getTopologyBuilder().createTopology());	
 			} else {
-				throw new InvalidParameterException("unknow parameter " + args[0]);
+				throw new InvalidParameterException("unknown parameter " + args[0]);
 			}
 		} catch (Exception e) {
-			log.error(e.getMessage());
+			log.error(e);
 		}
 	}
 }

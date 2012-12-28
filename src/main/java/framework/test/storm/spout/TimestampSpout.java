@@ -13,7 +13,6 @@ public class TimestampSpout extends SpoutSkeleton {
 
 	public TimestampSpout() {
 		setSpoutName("TimestampSpout");
-		setSpoutConcurrency(3);
 	}
 	
 	@Override
