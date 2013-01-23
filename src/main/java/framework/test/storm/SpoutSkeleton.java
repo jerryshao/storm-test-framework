@@ -60,10 +60,10 @@ public abstract class SpoutSkeleton extends BaseRichSpout {
 		spoutCounterTimer.scheduleAtFixedRate(new TimerTask() {
 			private long lastCount = 0;
 			public void run() {
-				log.info("emit count/s[" + (spoutEmitCounter - lastCount) / 10 + "]");
+				log.info("emit count/s[" + (spoutEmitCounter - lastCount) / 3 + "]");
 				lastCount = spoutEmitCounter;
 			}
-		}, 0, 10000);
+		}, 0, 3000);
 		
 		spoutOpen(conf, context, collector);
 	}

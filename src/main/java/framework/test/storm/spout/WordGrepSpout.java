@@ -52,7 +52,7 @@ public class WordGrepSpout extends SpoutSkeleton {
 	    Random random = new Random();
 	    int sentenceNum = 512;
 	    sentences = new String[sentenceNum];
-	    
+
 	    for (int i = 0; i < sentenceNum; i++) {
 	    	StringBuilder sb = new StringBuilder(); 
 	    	for (int j = 0; j < sentenceLen; j++) { 

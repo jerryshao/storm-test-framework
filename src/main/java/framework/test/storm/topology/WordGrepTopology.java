@@ -12,7 +12,7 @@ public class WordGrepTopology extends TopologySkeleton {
 	public void initTopologyBuilder(final String[] args) {
 		WordGrepSpout spout = new WordGrepSpout();
 		spout.setSpoutConcurrency(getSpoutCon());
-		if (args != null && args.length > 1) {
+		if (args != null && args.length > 0) {
 			spout.setSentenceLen(Integer.parseInt(args[0]));
 		} else {
 			spout.setSentenceLen(100);
@@ -23,7 +23,7 @@ public class WordGrepTopology extends TopologySkeleton {
 		
 		WordGrepBolt bolt = new WordGrepBolt();
 		bolt.setBoltConcurrency(getBoltCon());
-		if (args != null && args.length > 2) {
+		if (args != null && args.length > 1) {
 			bolt.setGrepWord(args[1]);
 		} else {
 			bolt.setGrepWord("qweasdzxcrtyfghv");

@@ -62,10 +62,10 @@ abstract public class BoltSkeleton extends BaseBasicBolt {
     	boltRecvTimer.scheduleAtFixedRate(new TimerTask() {
     		private long lastCount = 0;
     		public void run() {
-    			log.info("recv count/s[" + (boltRecvCounter - lastCount) / 10 + "]");
+    			log.info("recv count/s[" + (boltRecvCounter - lastCount) / 3 + "]");
     			lastCount = boltRecvCounter;
     		}
-    	}, 0, 10000);
+    	}, 0, 3000);
     	
     	boltPrepare(stormConf, context);
     }
